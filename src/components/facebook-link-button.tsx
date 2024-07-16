@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 
 interface FacebookLinkButtonProps {
@@ -10,18 +10,41 @@ const FacebookLinkButton: React.FC<FacebookLinkButtonProps> = ({
     pageId,
     buttonText,
 }) => {
+    const [isAndroid, setIsAndroid] = useState(false);
+    const [isTikTokBrowser, setIsTikTokBrowser] = useState(false);
+
+    useEffect(() => {
+        setIsAndroid(/Android/i.test(navigator.userAgent));
+    }, []);
+
+    useEffect(() => {
+        setIsTikTokBrowser(
+            /TikTok/i.test(navigator.userAgent) ||
+                /Musical_ly/i.test(navigator.userAgent)
+        );
+    }, []);
+
     const handleClick = () => {
         const mobileUrl = `fb://page/${pageId}`;
         const webUrl = `https://www.facebook.com/${pageId}`;
+        const intentUrl = `intent://page/${pageId}#Intent;package=com.facebook.katana;scheme=fb;end`;
 
         const isIOS = //@ts-ignore
             /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-        if (isIOS) {
+        if (isTikTokBrowser) {
+            window.open(webUrl, '_blank');
+        } else if (isIOS) {
             setTimeout(() => {
                 window.location.href = webUrl;
             }, 25);
             window.location.href = mobileUrl;
+        } else if (isAndroid) {
+            window.location.href = intentUrl;
+
+            setTimeout(() => {
+                window.location.href = webUrl;
+            }, 2000);
         } else {
             window.location.href = mobileUrl;
             setTimeout(() => {
